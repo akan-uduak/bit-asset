@@ -327,3 +327,59 @@
     )
   )
 )
+
+;; READ-ONLY QUERY FUNCTIONS
+
+(define-read-only (get-asset-info (asset-id uint))
+  ;; Retrieves comprehensive asset information and metadata
+  (map-get? assets { asset-id: asset-id })
+)
+
+(define-read-only (get-balance
+    (owner principal)
+    (asset-id uint)
+  )
+  ;; Returns fractional token balance for specific asset and owner
+  (default-to u0
+    (get balance
+      (map-get? token-balances {
+        owner: owner,
+        asset-id: asset-id,
+      })
+    ))
+)
+
+(define-read-only (get-proposal (proposal-id uint))
+  ;; Retrieves governance proposal details and voting status
+  (map-get? proposals { proposal-id: proposal-id })
+)
+
+(define-read-only (get-vote
+    (proposal-id uint)
+    (voter principal)
+  )
+  ;; Returns individual voting record for specific proposal
+  (map-get? votes {
+    proposal-id: proposal-id,
+    voter: voter,
+  })
+)
+
+(define-read-only (get-price-feed (asset-id uint))
+  ;; Retrieves latest oracle price feed data for asset
+  (map-get? price-feeds { asset-id: asset-id })
+)
+
+(define-read-only (get-last-claim
+    (asset-id uint)
+    (claimer principal)
+  )
+  ;; Returns last dividend claim amount for tracking purposes
+  (default-to u0
+    (get last-claimed-amount
+      (map-get? dividend-claims {
+        asset-id: asset-id,
+        claimer: claimer,
+      })
+    ))
+)
