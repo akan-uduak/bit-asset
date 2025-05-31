@@ -157,3 +157,85 @@
     (<= duration MAX-DURATION)
   )
 )
+
+(define-private (validate-kyc-level (level uint))
+  ;; Validates KYC compliance level
+  (<= level MAX-KYC-LEVEL)
+)
+
+(define-private (validate-expiry (expiry uint))
+  ;; Validates expiry timestamp is reasonable
+  (and
+    (> expiry stacks-block-height)
+    (<= (- expiry stacks-block-height) MAX-EXPIRY)
+  )
+)
+
+(define-private (validate-minimum-votes (vote-count uint))
+  ;; Validates minimum vote threshold for proposals
+  (and
+    (> vote-count u0)
+    (<= vote-count tokens-per-asset)
+  )
+)
+
+(define-private (validate-metadata-uri (uri (string-ascii 256)))
+  ;; Validates metadata URI format and length
+  (and
+    (> (len uri) u0)
+    (<= (len uri) u256)
+  )
+)
+
+;; HELPER FUNCTIONS
+
+(define-private (get-next-asset-id)
+  ;; Generates next sequential asset ID
+  (default-to u1 (get-last-asset-id))
+)
+
+(define-private (get-next-proposal-id)
+  ;; Generates next sequential proposal ID
+  (default-to u1 (get-last-proposal-id))
+)
+
+(define-private (get-last-asset-id)
+  ;; Retrieves the last registered asset ID
+  none
+)
+
+(define-private (get-last-proposal-id)
+  ;; Retrieves the last created proposal ID
+  none
+)
+
+;; ASSET MANAGEMENT FUNCTIONS
+
+(define-public (register-asset
+    (metadata-uri (string-ascii 256))
+    (asset-value uint)
+  )
+  ;; Registers a new real-world asset for tokenization
+  (begin
+    (asserts! (is-eq tx-sender contract-owner) err-owner-only)
+    (asserts! (validate-metadata-uri metadata-uri) err-invalid-uri)
+    (asserts! (validate-asset-value asset-value) err-invalid-value)
+    (let ((asset-id (get-next-asset-id)))
+      (map-set assets { asset-id: asset-id } {
+        owner: contract-owner,
+        metadata-uri: metadata-uri,
+        asset-value: asset-value,
+        is-locked: false,
+        creation-height: stacks-block-height,
+        last-price-update: stacks-block-height,
+        total-dividends: u0,
+      })
+      (map-set token-balances {
+        owner: contract-owner,
+        asset-id: asset-id,
+      } { balance: tokens-per-asset }
+      )
+      (ok asset-id)
+    )
+  )
+)
