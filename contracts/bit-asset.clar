@@ -76,3 +76,84 @@
     total-dividends: uint,
   }
 )
+
+;; Token Ownership Registry - Fractional ownership tracking
+(define-map token-balances
+  {
+    owner: principal,
+    asset-id: uint,
+  }
+  { balance: uint }
+)
+
+;; KYC Compliance Registry - Identity verification and compliance levels
+(define-map kyc-status
+  { address: principal }
+  {
+    is-approved: bool,
+    level: uint,
+    expiry: uint,
+  }
+)
+
+;; Governance Proposal Registry - Decentralized decision making
+(define-map proposals
+  { proposal-id: uint }
+  {
+    title: (string-ascii 256),
+    asset-id: uint,
+    start-height: uint,
+    end-height: uint,
+    executed: bool,
+    votes-for: uint,
+    votes-against: uint,
+    minimum-votes: uint,
+  }
+)
+
+;; Voting Registry - Individual vote tracking
+(define-map votes
+  {
+    proposal-id: uint,
+    voter: principal,
+  }
+  { vote-amount: uint }
+)
+
+;; Dividend Distribution Registry - Automated reward tracking
+(define-map dividend-claims
+  {
+    asset-id: uint,
+    claimer: principal,
+  }
+  { last-claimed-amount: uint }
+)
+
+;; Oracle Price Feed Registry - External price data integration
+(define-map price-feeds
+  { asset-id: uint }
+  {
+    price: uint,
+    decimals: uint,
+    last-updated: uint,
+    oracle: principal,
+  }
+)
+
+;; INPUT VALIDATION FUNCTIONS
+
+(define-private (validate-asset-value (value uint))
+  ;; Validates asset value is within acceptable range
+  (and
+    (>= value MIN-ASSET-VALUE)
+    (<= value MAX-ASSET-VALUE)
+  )
+)
+
+(define-private (validate-duration (duration uint))
+  ;; Validates proposal duration is within acceptable timeframe
+  (and
+    (>= duration MIN-DURATION)
+    (<= duration MAX-DURATION)
+  )
+)
