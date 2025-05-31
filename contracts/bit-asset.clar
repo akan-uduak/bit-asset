@@ -61,6 +61,14 @@
 ;; Tokenization Parameters
 (define-constant tokens-per-asset u100000) ;; Fixed fractionalization ratio
 
+;; DATA VARIABLES FOR TRACKING COUNTERS
+
+;; Counter for tracking the last registered asset ID
+(define-data-var last-asset-id uint u0)
+
+;; Counter for tracking the last created proposal ID
+(define-data-var last-proposal-id uint u0)
+
 ;; DATA STRUCTURES & STORAGE MAPS
 
 ;; Asset Registry - Core asset information and metadata
@@ -190,23 +198,29 @@
 ;; HELPER FUNCTIONS
 
 (define-private (get-next-asset-id)
-  ;; Generates next sequential asset ID
-  (default-to u1 (get-last-asset-id))
+  ;; Generates next sequential asset ID by incrementing the counter
+  (let ((next-id (+ (var-get last-asset-id) u1)))
+    (var-set last-asset-id next-id)
+    next-id
+  )
 )
 
 (define-private (get-next-proposal-id)
-  ;; Generates next sequential proposal ID
-  (default-to u1 (get-last-proposal-id))
+  ;; Generates next sequential proposal ID by incrementing the counter
+  (let ((next-id (+ (var-get last-proposal-id) u1)))
+    (var-set last-proposal-id next-id)
+    next-id
+  )
 )
 
 (define-private (get-last-asset-id)
   ;; Retrieves the last registered asset ID
-  none
+  (some (var-get last-asset-id))
 )
 
 (define-private (get-last-proposal-id)
   ;; Retrieves the last created proposal ID
-  none
+  (some (var-get last-proposal-id))
 )
 
 ;; ASSET MANAGEMENT FUNCTIONS
@@ -382,4 +396,16 @@
         claimer: claimer,
       })
     ))
+)
+
+;; PUBLIC READ-ONLY FUNCTIONS FOR ACCESSING COUNTERS
+
+(define-read-only (get-current-asset-count)
+  ;; Returns the total number of registered assets
+  (var-get last-asset-id)
+)
+
+(define-read-only (get-current-proposal-count)
+  ;; Returns the total number of created proposals
+  (var-get last-proposal-id)
 )
